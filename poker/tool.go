@@ -38,6 +38,7 @@ func HighBitValue(x uint32) uint32 { //0010 1100 0000 0000 0000 0000 0000 0000 0
 	return (x + 1) >> 1 //0100 0000 0000 0000 0000 0000 0000 0000 0000 0000
 }
 
+// 获取m到n位最大bit组合的值
 func GetHighNBits(v uint32, m, n int) uint32 {
 	c := uint32(0x00008000)
 	w := uint32(0)
@@ -49,4 +50,17 @@ func GetHighNBits(v uint32, m, n int) uint32 {
 		c = c >> 1
 	}
 	return w
+}
+
+func GetFaceScore(v uint32) uint32 {
+	v = HighBitValue(v)
+	var cnt uint32
+	for v > 0 {
+		if (v & 1) > 0 {
+			return (1 << 13) * cnt
+		}
+		v = v >> 1
+		cnt++
+	}
+	return 0
 }
