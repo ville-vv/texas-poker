@@ -1,7 +1,5 @@
 package poker
 
-import "fmt"
-
 const (
 	CompColorFlag = 0x000F0000
 )
@@ -28,8 +26,51 @@ type HandCard struct {
 	score       uint32            // 手牌的分数
 }
 
-func NewRule() *HandCard {
-	return &HandCard{}
+func NewHandCard(cardStr string) *HandCard {
+	hdc := &HandCard{}
+	hdc.SetCardsWithStr(cardStr)
+	return hdc
+}
+
+func (r *HandCard)GetMaxCard(){
+	// 1.检测是不是同花顺
+	if r.StraightFlush(){
+
+	}
+	// 2.检测是不是四条
+	if r.FourSame(){
+
+	}
+	// 3.检测是不是葫芦
+	if r.FullHose(){
+
+	}
+	// 4.检测是不是同花
+	if r.SameColor(){
+
+	}
+
+	// 5.检测是不是顺子
+	if r.Straight(){
+
+	}
+
+	// 6.检测是不是三条
+	if r.ThreeSame(){
+
+	}
+
+	// 7.检测是不是两对
+	if r.FourSame(){
+
+	}
+
+	// 7.检测是不是一对
+	if r.FourSame(){
+
+	}
+	// 剩下就是高牌
+
 }
 
 // 设置手牌
@@ -105,7 +146,7 @@ func (r *HandCard) KingStraightFlush() bool {
 
 // 同花顺
 func (r *HandCard) StraightFlush() bool {
-	if r.SameColor() == 0 {
+	if !r.SameColor() {
 		return false
 	}
 	return r.straight(r.FaceSum)
@@ -129,25 +170,24 @@ func (r *HandCard) FullHose() bool {
 }
 
 // 同花, 0 非同花， 大于0是同花，返回花色
-func (r *HandCard) SameColor() uint32 {
+func (r *HandCard) SameColor() bool {
 	colorNum := CountBitNums((r.FaceColor & 0x000F0000) >> 8)
 	if colorNum == 1 && r.cardNum == 5 {
-		return r.FaceColor & 0x000F0000
+		// FaceColor & 0x000F0000 花色
+		return true
 	}
-	fmt.Println(r.ColorTimes)
 	for i := uint32(0); i < 4; i++ {
 		if r.ColorTimes[0x00080000>>i]+r.GhostNum == 5 {
-			return 0x00080000 >> i
+			// 0x00080000 >> i
+			return true
 		}
 	}
-	return 0
+	return false
 }
 
 // 顺子
-func (r *HandCard) Straight() (bool, uint32) {
-	d := r.FaceCounter[0] & 0x0000ffff
-	max := HighBitValue(d)
-	return r.straight(r.FaceSum), max
+func (r *HandCard) Straight() bool {
+	return r.straight(r.FaceSum)
 }
 
 // 三条
@@ -205,6 +245,7 @@ func (r *HandCard) OnePairs() bool {
 	return false
 }
 
+// HighCard 高牌
 func (r *HandCard) HighCard() bool {
 	if (r.FaceCounter[0] & 0x0000ffff) == uint32(r.cardNum) {
 		r.cardType = TypeHighCard
