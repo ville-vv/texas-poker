@@ -5,7 +5,6 @@ import (
 	"github.com/json-iterator/go"
 	"io/ioutil"
 	"texas-poker/poker"
-	"time"
 )
 
 type Match struct {
@@ -26,21 +25,18 @@ func NewMatchs(fPath string)*Matches{
 }
 
 func (matches *Matches) OutPutResults() {
-	//cnter := 0
-	beginTime := time.Now()
+	cnter := 0
 	for _, v := range matches.Matches {
 		res := Compare(v.Alice, v.Bob)
 		if res != v.Result {
 			fmt.Printf("%s, %s , %d, %d\n", v.Alice, v.Bob, res, v.Result)
-			//cnter++
+			cnter++
 		}
 	}
-	finishTime := time.Now()
-	fmt.Printf("共耗时：%.2f 毫秒\n", finishTime.Sub(beginTime).Seconds()*1000)
-	fmt.Printf("合计：%d 条\n", len(matches.Matches))
-	//fmt.Printf("不正确结果为：%d 条\n", cnter)
+	if cnter > 0{
+		fmt.Printf("不正确结果为：%d 条\n", cnter)
+	}
 }
-
 
 func ReadMatchFromJson(path string, m *Matches ) {
 	file, err := ioutil.ReadFile(path)
@@ -52,7 +48,6 @@ func ReadMatchFromJson(path string, m *Matches ) {
 	}
 	return
 }
-
 
 func Compare(strA string, strB string) int {
 	card1 := poker.NewHandCard(strA)
