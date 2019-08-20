@@ -18,6 +18,6 @@ func TestHighBitValue(t *testing.T) {
 }
 
 func TestGetHighNBits(t *testing.T) {
-	vl := uint32(0xAB00)
+	vl := uint64(0xAB00)
 	t.Log(GetHighNBits(vl, 16, 5))
 }

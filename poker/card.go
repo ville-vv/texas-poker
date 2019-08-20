@@ -1,6 +1,6 @@
 package poker
 
-var FaceAll = map[string]uint32{
+var FaceAll = map[string]uint64{
 	"2d": 0x00010000 + 1<<1,
 	"2c": 0x00020000 + 1<<1,
 	"2h": 0x00040000 + 1<<1,
@@ -56,3 +56,20 @@ var FaceAll = map[string]uint32{
 	"Xx": 0x00100000,
 	"Xn": 0x00200000,
 }
+
+const (
+	TJQKA                     uint64 = 0x283E00 & 0x0000ffff
+	A2345                     uint64 = 0x201E
+)
+const (
+	TypeStraightFlush uint64 = 9 << 48 // 同花顺：同一花色的顺子。（最大牌：K-Q-J-10-9 最小牌：A-2-3-4-5）
+	TypeFour          uint64 = 8 << 48 // 四条：四同张加单张。（最大牌：A-A-A-A-K 最小牌：2-2-2-2-3）
+	TypeFullHose      uint64 = 7 << 48 // 葫芦（豪斯）：三同张加对子。（最大牌：A-A-A-K-K 最小牌：2-2-2-3-3）
+	TypeFlush         uint64 = 6 << 48 // 同花：同一花色。（最大牌：A-K-Q-J-9 最小牌：2-3-4-5-7）
+	TypeStraight      uint64 = 5 << 48 // 顺子：花色不一样的顺子。（最大牌：A-K-Q-J-10 最小牌：A-2-3-4-5）
+	TypeThree         uint64 = 4 << 48 // 三条：三同张加两单张。（最大牌：A-A-A-K-Q 最小牌：2-2-2-3-4）
+	TypeTwoPair       uint64 = 3 << 48 // 两对：（最大牌：A-A-K-K-Q 最小牌：2-2-3-3-4）
+	TypeOnePair       uint64 = 2 << 48 // 一对：（最大牌：A-A-K-Q-J 最小牌：2-2-3-4-5）
+	TypeHighCard      uint64 = 1 << 48 // 高牌：（最大牌：A-K-Q-J-9 最小牌：2-3-4-5-7）
+)
+

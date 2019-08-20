@@ -1,38 +1,28 @@
 package poker
 
-const (
-	CompColorFlag = 0x000F0000
-)
 
-const (
-	SpadesKingStraightFlush   uint32 = 0x53E00  // 0x00010200+0x00010400+0x00010800+0x00011000+0x00012000
-	HeartsKingStraightFlush   uint32 = 0xA3E00  // 0x00020200+0x00020400+0x00020800+0x00021000+0x00022000
-	DiamondsKingStraightFlush uint32 = 0x143E00 // 0x00040200+0x00040400+0x00040800+0x00041000+0x00042000
-	SlubsKingStraightFlush    uint32 = 0x283E00 // 0x00080200+0x00080400+0x00080800+0x00081000+0x00082000
-	TJQKA                     uint32 = 0x283E00 & 0x0000ffff
-)
 
 // 手牌
 type HandCard struct {
-	cardType    uint32            // 牌的类型
-	cardNum     int               // 牌的数量
-	GhostNum    uint32            // 鬼牌数量
-	CardStr     string            // 最原始的字符串牌型
-	cards       []uint32          // 转换为数组切片的牌型，没有排序的
-	faceSum     uint32            // 牌面的总和
-	faceColor   uint32            // 牌所有花色记录
-	FaceCounter [7]uint32         // 面牌次数计数器, 下标 6代表和，下标5记录逻辑与值
-	ColorTimes  map[uint32]uint32 // 记录花色出现的次数
-	score       uint32            // 手牌的分数
+	cardType    uint64         // 牌的类型
+	cardNum     int            // 牌的数量
+	ghostNum    uint64         // 鬼牌数量
+	score       uint64         // 手牌的分数
+	cardStr     string         // 最原始的字符串牌型
+	cards       [10]uint64     // 转换为数组切片的牌型，没有排序的
+	faceSum     uint64         // 牌面的总和
+	faceCounter [4]uint64      // 面牌次数计数器, 下标 6代表和，下标5记录逻辑与值
+	colorTimes  [0x000f]uint64 // 记录花色出现的次数
 }
 
 func NewHandCard(cardStr string) *HandCard {
 	hdc := &HandCard{}
-	hdc.SetCardsWithStr(cardStr)
+	hdc.setCardsWithStr(cardStr)
+	hdc.Analysis()
 	return hdc
 }
 
-func (r *HandCard) GetMaxCardScore() uint32 {
+func (r *HandCard) Analysis()  {
 	// 1.检测是不是同花顺
 	if r.StraightFlush() {
 	} else if r.FourSame() {
@@ -52,91 +42,55 @@ func (r *HandCard) GetMaxCardScore() uint32 {
 		// 剩下就是高牌
 		r.HighCard()
 	}
+	return
+}
+
+func (r *HandCard)GetCardType()uint64{
+	return r.cardType
+}
+func (r *HandCard)GetScore()uint64{
 	return r.score
 }
 
 // 设置手牌
-func (r *HandCard) SetCards(c []uint32) {
-	l := len(c)
-	var sum uint32
-	var color uint32
-	r.faceSum = 0
-	r.FaceCounter = [7]uint32{0}
-	for i := 0; i < l; i++ {
-		sum += c[i]
-		color |= c[i]
-
-		val := c[i] & 0x0000ffff
-		r.FaceCounter[3] |= r.FaceCounter[2] & val //记录出现过四次次以上的牌型，二进制 1 出现次数就是牌型的种类
-		r.FaceCounter[2] |= r.FaceCounter[1] & val //记录出现过三次以上的牌型，二进制 1 出现次数就是牌型的种类
-		r.FaceCounter[1] |= r.FaceCounter[0] & val //记录出现过两次以上的牌型，二进制 1 出现次数就是牌型的种类
-		r.FaceCounter[0] |= val                    //记录所有出现过的牌型, 二进制 1 出现次数就是牌型的种类
-	}
-	r.faceColor = color
-	r.faceSum = sum
-	r.cards = c[:]
-	r.cardNum = l
-}
-
-// 设置手牌
-func (r *HandCard) SetCardsWithStr(cardStr string) {
+func (r *HandCard) setCardsWithStr(cardStr string) {
 	l := len(cardStr)
-	r.ColorTimes = make(map[uint32]uint32)
-	r.faceColor = 0
-	r.GhostNum = 0
+	r.ghostNum = 0
 	r.faceSum = 0
-	r.FaceCounter = [7]uint32{0}
-	r.cards = make([]uint32, 0, l)
+	//r.cards = make([]uint64, 0, l)
 	for i := 0; i < l; {
 		ts := cardStr[i : i+2]
 		cd := FaceAll[ts]
 		i += 2
 		r.faceSum += cd
-		r.faceColor |= cd
 		if cd&0x00f00000 > 0 {
-			r.GhostNum++
+			r.ghostNum++
 		}
-
 		val := cd & 0x0000ffff
-		r.FaceCounter[3] |= r.FaceCounter[2] & val //记录出现过四次次以上的牌型，二进制 1 出现次数就是牌型的种类
-		r.FaceCounter[2] |= r.FaceCounter[1] & val //记录出现过三次以上的牌型，二进制 1 出现次数就是牌型的种类
-		r.FaceCounter[1] |= r.FaceCounter[0] & val //记录出现过两次以上的牌型，二进制 1 出现次数就是牌型的种类
-		r.FaceCounter[0] |= val                    //记录所有出现过的牌型, 二进制 1 出现次数就是牌型的种类
+		r.faceCounter[3] |= r.faceCounter[2] & val //记录出现过四次次以上的牌型，二进制 1 出现次数就是牌型的种类
+		r.faceCounter[2] |= r.faceCounter[1] & val //记录出现过三次以上的牌型，二进制 1 出现次数就是牌型的种类
+		r.faceCounter[1] |= r.faceCounter[0] & val //记录出现过两次以上的牌型，二进制 1 出现次数就是牌型的种类
+		r.faceCounter[0] |= val                    //记录所有出现过的牌型, 二进制 1 出现次数就是牌型的种类
 
-		r.ColorTimes[cd&0x000f0000] |= val // 花色出现的次数
+		r.colorTimes[(cd&0x000f0000) >> 16] |= val // 花色出现的次数
 
-		r.cards = append(r.cards, cd)
+		r.cards[r.cardNum] = cd
+		r.cardNum ++
 	}
-	r.cardNum = len(r.cards)
-}
-
-// 皇家同花顺
-func (r *HandCard) KingStraightFlush() bool {
-	switch r.faceSum {
-	case SpadesKingStraightFlush:
-		return true
-	case HeartsKingStraightFlush:
-		return true
-	case DiamondsKingStraightFlush:
-		return true
-	case SlubsKingStraightFlush:
-		return true
-	}
-
-	return false
 }
 
 // 同花顺
 func (r *HandCard) StraightFlush() bool {
-	for i := uint32(0); i <= 4; i++ {
+	for i := uint64(0); i <= 4; i++ {
+		cc := r.colorTimes[(0x0008)>>i]
 		// 鬼牌最多只有两个，
-		if CountBitNums(r.ColorTimes[0x00080000>>i])+r.GhostNum >= 5 {
-			if r.straight(r.faceSum, r.ColorTimes[0x00080000>>i]) {
+		if CountBitNums(cc)+r.ghostNum >= 5 {
+			r.cardType = TypeFlush
+			if r.straight(r.faceSum, cc) {
 				r.cardType = TypeStraightFlush
 				r.ToScore(r.score | 0x00ffffff)
 				return true
 			}
-
 		}
 	}
 	return false
@@ -144,9 +98,10 @@ func (r *HandCard) StraightFlush() bool {
 
 // 四条
 func (r *HandCard) FourSame() bool {
-	if r.FaceCounter[3-r.GhostNum] > 0 {
+	if r.faceCounter[3-r.ghostNum] > 0 {
 		r.cardType = TypeFour
-		r.ToScore(GetFaceScore(r.FaceCounter[3-r.GhostNum]) | r.FaceCounter[0])
+		fu := r.faceCounter[3-r.ghostNum]
+		r.ToScore(GetFaceScore(fu) | GetHighNBits(fu^r.faceCounter[0], 15, 1))
 		return true
 	}
 	return false
@@ -155,11 +110,13 @@ func (r *HandCard) FourSame() bool {
 // 葫芦
 func (r *HandCard) FullHose() bool {
 	// 如果鬼为0个，那么必定是三条加一对，如果有一个鬼，必定是两对，如果是有两个鬼的话那么只要存在两对，就会变成四条
-	if r.FaceCounter[2-r.GhostNum] > 0 && CountBitNums(r.FaceCounter[1]) > 1 {
+	if r.faceCounter[2-r.ghostNum] > 0 && CountBitNums(r.faceCounter[1]) > 1 {
 		r.cardType = TypeFullHose
-		highV := HighBitValue(r.FaceCounter[2-r.GhostNum])
-		two := ^(highV) & r.FaceCounter[1-r.GhostNum]
-		r.ToScore(GetFaceScore(highV) + GetFaceScore(two) | GetHighNBits(r.FaceCounter[0]^highV^two, 14, 3))
+			highV := HighBitValue(r.faceCounter[2-r.ghostNum])
+			two := ^(highV) & r.faceCounter[1]
+			typeV := GetFaceScore(highV << 13 | two)
+			r.ToScore(typeV)
+
 		return true
 	}
 	return false
@@ -167,21 +124,22 @@ func (r *HandCard) FullHose() bool {
 
 // 同花, 0 非同花， 大于0是同花，返回花色
 func (r *HandCard) SameColor() bool {
-	colorNum := CountBitNums((r.faceColor & 0x000F0000) >> 8)
-	if colorNum == 1 && r.cardNum == 5 {
-		r.cardType = TypeFlush
-		// faceColor & 0x000F0000 花色
-		r.ToScore(r.FaceCounter[0])
-		return true
-	}
-	for i := uint32(0); i <= 4; i++ {
+	//colorNum := CountBitNums((r.faceColor & 0x000F0000) >> 8)
+	//if colorNum == 1 && r.cardNum == 5 {
+	//	r.cardType = TypeFlush
+	//	// faceColor & 0x000F0000 花色
+	//	r.ToScore(r.faceCounter[0])
+	//	return true
+	//}
+	//
+	for i := uint64(0); i <= 4; i++ {
+		cc := r.colorTimes[0x0008>>i]
 		// 鬼牌最多只有两个，
-		if CountBitNums(r.ColorTimes[0x00080000>>i])+r.GhostNum >= 5 {
-			// 0x00080000 >> i
+		if CountBitNums(cc)+r.ghostNum >= 5 {
 			r.cardType = TypeFlush
 			// 鬼牌可能充当的牌，如果不存在 AK 中的任意一个，鬼牌就可以充当，如果没有一个就充当QJT中的一个或两个
-			canPull := (r.FaceCounter[0] & TJQKA) ^ TJQKA
-			canPull = GetHighNBits(canPull, 15, int(r.GhostNum)) | r.FaceCounter[0]
+			canPull := (cc & TJQKA) ^ TJQKA
+			canPull = GetHighNBits(canPull, 15, int(r.ghostNum)) + GetHighNBits(cc,15, int(5-r.ghostNum))
 			r.ToScore(canPull)
 			return true
 		}
@@ -191,28 +149,28 @@ func (r *HandCard) SameColor() bool {
 
 // 顺子
 func (r *HandCard) Straight() bool {
-	return r.straight(r.faceSum, r.FaceCounter[0])
+	return r.straight(r.faceSum, r.faceCounter[0])
 }
 
 // 三条
 func (r *HandCard) ThreeSame() bool {
 	// 有一个鬼的情况，必须要有一对存在，有两个鬼的话那么就可能变成四条了
-	if r.FaceCounter[2-r.GhostNum] > 0 {
+	if r.faceCounter[2-r.ghostNum] > 0 {
 		r.cardType = TypeThree
-		one := r.FaceCounter[2-r.GhostNum] ^ r.FaceCounter[0]
-		r.ToScore(GetFaceScore(r.FaceCounter[2-r.GhostNum]) | GetHighNBits(one, 16, 2))
+		one := r.faceCounter[2-r.ghostNum] ^ r.faceCounter[0]
+		r.ToScore(GetFaceScore(r.faceCounter[2-r.ghostNum]) | GetHighNBits(one, 14, 2))
 		return true
 	}
 	return false
 }
 
 // straight 判断是不是顺子, 包括有鬼牌的情况
-func (r *HandCard) straight(sum uint32, card uint32) bool {
-	cModel := uint32(TJQKA)
-	if r.GhostNum == 0 {
-		sum = sum & 0x0000ffff
+func (r *HandCard) straight(sum uint64, card uint64) bool {
+	cModel := uint64(TJQKA)
+	if r.ghostNum == 0 {
+		card = card & 0x0000ffff
 		for cModel >= 31 {
-			if cModel&sum == cModel {
+			if cModel&card == cModel {
 				r.cardType = TypeStraight
 				r.ToScore(cModel)
 				return true
@@ -221,12 +179,18 @@ func (r *HandCard) straight(sum uint32, card uint32) bool {
 		}
 	}
 	for cModel >= 31 {
-		if oneNum := CountBitNums(cModel & card); oneNum >= 5-r.GhostNum {
+		if oneNum := CountBitNums(cModel & card); oneNum >= 5-r.ghostNum {
 			r.cardType = TypeStraight
 			r.ToScore(cModel)
 			return true
 		}
 		cModel = cModel >> 1
+	}
+	// 最小的顺子
+	if oneNum := CountBitNums(card & A2345); oneNum >= 5-r.ghostNum {
+		r.cardType = TypeStraight
+		r.ToScore(A2345&(^uint64(0x00002000))|1)
+		return true
 	}
 
 	return false
@@ -235,11 +199,14 @@ func (r *HandCard) straight(sum uint32, card uint32) bool {
 // 两对
 func (r *HandCard) TwoPairs() bool {
 	// 如果存在鬼牌，且存在一对以上的话必定会变成三条，所有不考虑鬼牌情况
-	if CountBitNums(r.FaceCounter[1]) > 1 {
+	if CountBitNums(r.faceCounter[1]) > 1 {
 		r.cardType = TypeTwoPair
-		highV := HighBitValue(r.FaceCounter[1])
-		two := ^(highV) & r.FaceCounter[1]
-		r.ToScore(GetFaceScore(highV) + GetFaceScore(two) | GetHighNBits(r.FaceCounter[0]^highV^two, 16, 1))
+		highV := HighBitValue(r.faceCounter[1])
+		two := HighBitValue(^(highV) & r.faceCounter[1])
+		typeV := GetFaceScore(highV|two)
+		//base  := GetHighNBits(r.faceCounter[0]^highV^two, 16, 1)
+		base  := HighBitValue(r.faceCounter[0]^highV^two)
+		r.ToScore(typeV | base)
 		return true
 	}
 	return false
@@ -248,10 +215,10 @@ func (r *HandCard) TwoPairs() bool {
 // 一对
 func (r *HandCard) OnePairs() bool {
 	//如果存在一张鬼牌那必定会有一对，
-	if r.GhostNum > 0 || r.FaceCounter[1] > 0 {
+	if r.ghostNum > 0 || r.faceCounter[1] > 0 {
 		r.cardType = TypeOnePair
-		one := r.FaceCounter[1] ^ r.FaceCounter[0]
-		r.ToScore(GetHighNBits(one, 16, 3) + GetFaceScore(r.FaceCounter[1]))
+		one := HighBitValue(r.faceCounter[1-r.ghostNum])
+		r.ToScore(GetHighNBits(one^r.faceCounter[0], 14, 3) | GetFaceScore(one))
 		return true
 	}
 	return false
@@ -260,10 +227,10 @@ func (r *HandCard) OnePairs() bool {
 // HighCard 高牌
 func (r *HandCard) HighCard() bool {
 	r.cardType = TypeHighCard
-	r.ToScore(GetHighNBits(r.FaceCounter[0], 16, 5))
+	r.ToScore(GetHighNBits(r.faceCounter[0], 16, 5))
 	return true
 }
 
-func (r *HandCard) ToScore(base uint32) {
-	r.score = (0x01000000 * r.cardType) | base
+func (r *HandCard) ToScore(base uint64) {
+	r.score = r.cardType  | base
 }

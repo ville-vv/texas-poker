@@ -43,15 +43,6 @@ func TestRule_Straight(t *testing.T) {
 	}
 }
 
-func TestRule_KingStraightFlush(t *testing.T) {
-	rule := HandCard{}
-	cardStrings := []string{"2s3s4s6s5s", "ThJhQhKhAh", "TcJcQcKcAc", "TdJdQdKdAd"}
-	for _, v := range cardStrings {
-		rule.SetCards(StringToCards(v))
-		t.Logf("%s 是不是皇家同花顺: %v", v, rule.KingStraightFlush())
-	}
-}
-
 func TestRule_FourSame(t *testing.T) {
 
 	cardStrings := []string{"2s2d2c6sXx", "ThJhQhKhAhXxXxXx", "TcJcQcKcAc", "TdJdQdKdAd"}
@@ -100,9 +91,9 @@ func TestHandCard_OnePairs(t *testing.T) {
 }
 
 func TestHandCard_GetMaxCardScore(t *testing.T) {
-	cardStrings := []string{"JhKsXnAdKc2h6s", "5c7cJhKsXnAdKc"}
+	cardStrings := []string{"AhAc9hKcKs9d3c", "8c4hAhAc9hKcKs"}
 	rule1 := NewHandCard(cardStrings[0])
-	fmt.Printf("%s 是否两队：%v\n", cardStrings[0], rule1.GetMaxCardScore())
+	fmt.Printf("%s 牌型%d 分数：%v\n", cardStrings[0], rule1.GetCardType(), rule1.GetScore())
 	rule2 := NewHandCard(cardStrings[1])
-	fmt.Printf("%s 是否两队：%v\n", cardStrings[1], rule2.GetMaxCardScore())
+	fmt.Printf("%s 牌型%d 分数：%v\n", cardStrings[1],  rule2.GetCardType(),rule2.GetScore())
 }
