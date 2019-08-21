@@ -1,7 +1,6 @@
 package match
 
 import (
-	"fmt"
 	"github.com/json-iterator/go"
 	"io/ioutil"
 	"texas-poker/poker"
@@ -30,13 +29,13 @@ func (m *Matches) CompareAndOutPutResults() {
 		card1 := poker.NewHandCard(v.Alice)
 		card2 := poker.NewHandCard(v.Bob)
 		if res := m.getResult(card1.GetScore(), card2.GetScore()); res!= v.Result {
-			fmt.Printf("%s, %s , %d, %d\n", v.Alice, v.Bob, res, v.Result)
+			//fmt.Printf("%s, %s , %d, %d\n", v.Alice, v.Bob, res, v.Result)
 			counter++
 		}
 	}
-	if counter > 0{
-		fmt.Printf("不正确结果为：%d 条\n", counter)
-	}
+	//if counter > 0{
+	//	fmt.Printf("不正确结果为：%d 条\n", counter)
+	//}
 }
 
 func (m *Matches)getResult(a, b uint64) int {
