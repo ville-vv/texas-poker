@@ -1,7 +1,5 @@
 package poker
 
-
-
 // 手牌
 type HandCard struct {
 	cardType    uint64         // 牌的类型
@@ -23,7 +21,7 @@ func NewHandCard(cardStr string) *HandCard {
 }
 
 func (r *HandCard) Analysis()  {
-	// 1.检测是不是同花顺
+	//// 1.检测是不是同花顺
 	if r.StraightFlush() {
 	} else if r.FourSame() {
 	} else if r.FullHose() {

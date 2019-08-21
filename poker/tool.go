@@ -1,16 +1,4 @@
 package poker
-
-func StringToCards(cs string) []uint64 {
-	l := len(cs)
-	cards := make([]uint64, 0, l)
-	for i := 0; i < l; {
-		ts := cs[i : i+2]
-		cards = append(cards, FaceAll[ts])
-		i = i + 2
-	}
-	return cards
-}
-
 // 获取一个数的二进制 1 的数量位数
 func CountBitNums(a uint64) uint64 {
 	a = (0x55555555 & a) + ((a >> 1) & 0x55555555)
