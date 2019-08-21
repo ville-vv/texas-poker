@@ -8,23 +8,10 @@ import (
 func TestRule_SameColor(t *testing.T) {
 	cardStrings := []string{"2s3s4c5cXnXnXn", "5h7h6h8h9h", "TcJcQcKcAc", "5d9d3sAdTdQd3d"}
 	for _, v := range cardStrings {
-		rule := HandCard{}
-		rule.SetCardsWithStr(v)
+		rule := NewHandCard(v)
 		if rule.SameColor() {
 			t.Logf("%s 是同花", v)
 		}
-		//switch  {
-		//case 0x00010000:
-		//	t.Logf("%s 是方块同花", v)
-		//case 0x00020000:
-		//	t.Logf("%s 是梅花同花", v)
-		//case 0x00040000:
-		//	t.Logf("%s 是红心同花", v)
-		//case 0x00080000:
-		//	t.Logf("%s 是黑桃同花", v)
-		//default:
-		//	t.Logf("%s 不是同花", v)
-		//}
 	}
 }
 
@@ -32,8 +19,7 @@ func TestRule_Straight(t *testing.T) {
 	cardStrings := []string{"9hXnJhQhXn5c7c", "4h7h6h8h9c", "5hTh6h8h9c", "8h9hTh7hJc"}
 	//cardStrings = []string{"8h9hTh7hJc"}
 	for _, v := range cardStrings {
-		rule := HandCard{}
-		rule.SetCardsWithStr(v)
+		rule := NewHandCard(v)
 		if rule.Straight() {
 			t.Logf("%s 是顺子", v)
 		} else {
@@ -44,11 +30,9 @@ func TestRule_Straight(t *testing.T) {
 }
 
 func TestRule_FourSame(t *testing.T) {
-
 	cardStrings := []string{"2s2d2c6sXx", "ThJhQhKhAhXxXxXx", "TcJcQcKcAc", "TdJdQdKdAd"}
 	for _, v := range cardStrings {
-		rule := &HandCard{}
-		rule.SetCardsWithStr(v)
+		rule := NewHandCard(v)
 		if rule.FourSame() {
 			fmt.Printf("%v, 是四条\n", v)
 		} else {
